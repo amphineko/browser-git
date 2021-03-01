@@ -1,12 +1,14 @@
-import React, { useReducer } from "react"
-import { Redirect, Route, Switch, useRouteMatch } from "react-router"
+import React, { useReducer } from 'react'
+import { Redirect, Route, Switch } from 'react-router'
 
-import { CommitBrowser } from "../components/CommitBrowser"
-import { RepositoryInitForm } from "../components/RepositoryInitForm"
-import { Repository } from "../lib/repositories"
-import { useAsyncMemo } from "../lib/useAsyncMemo"
+import { CommitBrowser } from '../components/CommitBrowser'
+import { RepositoryInitForm } from '../components/RepositoryInitForm'
+import { Repository } from '../lib/repositories'
+import { useAsyncMemo } from '../lib/useAsyncMemo'
 
-function repositoryReducer(_: any, newRepository: { name: string | null, repository: Repository | null }) {
+interface RepositoryPair { name: string | null, repository: Repository | null }
+
+function repositoryReducer(_: any, newRepository: RepositoryPair): RepositoryPair {
     const { name, repository } = newRepository
     if ((name === null && repository !== null) || (name !== null && repository === null)) {
         throw new Error('Inconsistent repository-name pair')
@@ -21,13 +23,11 @@ export function Application(props: {
 }): JSX.Element {
     const { corsProxy } = props
 
-    const [{ repository, name: repositoryName }, setRepository] = useReducer(repositoryReducer, { name: null, repository: null })
+    const [{ repository }, setRepository] = useReducer(repositoryReducer, { name: null, repository: null })
 
     const commits = useAsyncMemo(async () => {
         return repository === null ? [] : await repository.log()
     }, [repository], [])
-
-    const { path, url } = useRouteMatch()
 
     return (
         <Switch>
@@ -36,7 +36,7 @@ export function Application(props: {
             </Route>
 
             <Route path="/start">
-                {repository !== null && <Redirect to={`/commits`} />}
+                {repository !== null && <Redirect to={'/commits'} />}
                 <RepositoryInitForm
                     initOptions={{ corsProxy }}
                     ready={(name, repo) => {

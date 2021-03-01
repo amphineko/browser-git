@@ -2,7 +2,11 @@
     "env": {
         "browser": true
     },
-    "extends": "standard-with-typescript",
+    "extends": [
+        "plugin:react/recommended",
+        "plugin:react-hooks/recommended",
+        "standard-with-typescript"
+    ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
         "ecmaFeatures": {
@@ -31,6 +35,17 @@
             }
         ],
         "no-unused-vars": "off",
+        "quotes": [
+            "error",
+            "single"
+        ],
+        "react-hooks/exhaustive-deps": [
+            "error",
+            {
+                "additionalHooks": "(useAsyncMemo)"
+            }
+        ],
+        "react-hooks/rules-of-hooks": "error",
         "space-before-function-paren": [
             "error",
             {
@@ -38,12 +53,6 @@
                 "named": "never",
                 "asyncArrow": "always"
             }
-        ],
-        "quotes": [
-            "error",
-            "single"
-        ],
-        "react-hooks/rules-of-hooks": "error",
-        "react-hooks/exhaustive-deps": "error"
+        ]
     }
 }

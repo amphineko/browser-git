@@ -1,11 +1,11 @@
 import FS from '@isomorphic-git/lightning-fs'
 import uniqueId from 'lodash/uniqueId'
-import React, { useRef, useState } from "react"
+import React, { useRef, useState } from 'react'
 import { Filesystem, Repository, RepositoryInit } from '../lib/repositories'
 
 function CloneForm(props: {
     onSubmit: (name: string, url: string) => void
-}) {
+}): JSX.Element {
     const { onSubmit } = props
 
     const nameInput = useRef<HTMLInputElement>(null)
@@ -20,9 +20,9 @@ function CloneForm(props: {
             <label htmlFor={urlInputId}>Repository URL</label>
             <input id={urlInputId} ref={urlInput} />
             <input
-                onClick={(e) => {
+                onClick={(e): void => {
                     e.preventDefault()
-                    onSubmit(nameInput.current?.value!, urlInput.current?.value!)
+                    onSubmit(nameInput.current?.value ?? '', urlInput.current?.value ?? '')
                 }}
                 type="submit"
                 value="Clone"
@@ -33,7 +33,7 @@ function CloneForm(props: {
 
 function InitForm(props: {
     onSubmit: (name: string) => void
-}) {
+}): JSX.Element {
     const { onSubmit } = props
 
     const nameInput = useRef<HTMLInputElement>(null)
@@ -46,7 +46,7 @@ function InitForm(props: {
             <input
                 onClick={(e) => {
                     e.preventDefault()
-                    onSubmit(nameInput.current?.value!)
+                    onSubmit(nameInput.current?.value ?? '')
                 }}
                 type="submit"
             />
@@ -63,7 +63,7 @@ const ProgressIndicatorLeadings = {
 function ProgressIndicator(props: {
     message: string
     state: 'active' | 'failed' | 'ready'
-}) {
+}): JSX.Element {
     const { message, state } = props
 
     return (
@@ -77,7 +77,7 @@ function ProgressIndicator(props: {
 export function RepositoryInitForm(props: {
     initOptions: RepositoryInit
     ready: (name: string, repo: Repository) => void
-}) {
+}): JSX.Element {
     const { initOptions, ready } = props
 
     // error of last operation
@@ -86,7 +86,7 @@ export function RepositoryInitForm(props: {
     // current progress of clone operation
     const [lastProgress, setLastProgress] = useState<string | null>(null)
 
-    async function clone(fs: Filesystem, url: string) {
+    async function clone(fs: Filesystem, url: string): Promise<Repository> {
         const options = Object.assign({}, initOptions)
         options.onProgress = (e) => {
             setLastProgress(`${e.phase} (${e.loaded}/${e.total})`)
@@ -94,22 +94,22 @@ export function RepositoryInitForm(props: {
 
         setLastProgress('Attempting to fetch from remote')
 
-        return await Repository.clone(url!, fs, options).catch((reason) => {
-            throw new Error(`Failed to clone: ${reason}`)
+        return await Repository.clone(url, fs, options).catch((reason) => {
+            throw new Error(`Failed to clone: ${reason as string}`)
         })
     }
 
-    async function init(fs: Filesystem) {
+    async function init(fs: Filesystem): Promise<Repository> {
         setLastProgress('Initializing')
 
         return await Repository.init(fs, initOptions).catch((reason) => {
-            throw new Error(`Failed to init: ${reason}`)
+            throw new Error(`Failed to init: ${reason as string}`)
         })
     }
 
-    function start(name: string, callback: (fs: Filesystem) => Promise<Repository>) {
+    async function start(name: string, callback: (fs: Filesystem) => Promise<Repository>): Promise<void> {
         const fs = new FS(name, { wipe: true }) as Filesystem
-        callback(fs).then((repository) => {
+        await callback(fs).then((repository) => {
             ready(name, repository)
         }, (reason) => {
             setLastError(reason)
@@ -120,14 +120,14 @@ export function RepositoryInitForm(props: {
 
     return (
         <div>
-            {(lastError || lastProgress) &&
+            {(lastError !== null || lastProgress !== null) &&
                 <ProgressIndicator
-                    message={lastError || lastProgress || ''}
-                    state={lastError ? 'failed' : 'active'}
+                    message={lastError ?? lastProgress ?? ''}
+                    state={lastError !== null ? 'failed' : 'active'}
                 />}
-            <CloneForm onSubmit={(name, url) => start(name, (fs) => clone(fs, url))} />
+            <CloneForm onSubmit={async (name, url) => await start(name, async (fs) => await clone(fs, url))} />
             <hr />
-            <InitForm onSubmit={(name) => start(name, (fs) => init(fs))} />
+            <InitForm onSubmit={async (name) => await start(name, async (fs) => await init(fs))} />
         </div>
     )
 }

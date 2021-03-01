@@ -40,6 +40,6 @@ export default (): Configuration => ({
             buffer: 'buffer',
             path: 'path-browserify'
         },
-        extensions: ['.js', '.jsx', '.ts', '.tsx'],
+        extensions: ['.js', '.jsx', '.ts', '.tsx']
     }
 })

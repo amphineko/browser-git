@@ -1,10 +1,10 @@
 import React, { useMemo } from 'react'
-import { ReadCommitResult } from "isomorphic-git"
+import { ReadCommitResult } from 'isomorphic-git'
 import { DateTime } from 'luxon'
 
 export function Commit(props: {
     commit: ReadCommitResult
-}) {
+}): JSX.Element {
     const { commit: result } = props
     const { commit } = result
 
@@ -24,7 +24,7 @@ export function Commit(props: {
 
 export function CommitBrowser(props: {
     commits: ReadCommitResult[]
-}) {
+}): JSX.Element {
     const { commits } = props
 
     const items = useMemo(() => {
